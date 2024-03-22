@@ -1,0 +1,21 @@
+{
+  "name": "channel-lifx",
+  "version": "0.0.1",
+  "description": "Workflows for broad rulesets",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Olisto/ruleset-workflows.git"
+  },
+  "keywords": [],
+  "author": "Harald Bastiaanse",
+  "license": "Olisto",
+  "bugs": {
+    "url": "https://github.com/Olisto/ruleset-workflows/issues"
+  },
+  "homepage": "https://github.com/Olisto/ruleset-workflows#README",
+  "devDependencies": {
+    "@triggi/eslint-config-olisto-nodejs": "^1.2.4",
+    "eslint": "^8.40.0"
+  },
+  "dependencies": {}
+}
