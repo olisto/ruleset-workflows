@@ -1,40 +1,77 @@
-name: Lint
+# This workflow will do linting
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js linting
 
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the main branch
-  push:
-    branches:
-      - main
-      - master
   pull_request:
-    branches:
-      - main
-      - master
+  workflow_dispatch:
 
 jobs:
-  run-linters:
-    name: Run linters
+  lint:
     runs-on: ubuntu-latest
-
-    env:
-        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          registry-url: 'https://registry.npmjs.org'
-
-      # ESLint must be in `package.json`
-      - name: Install Node.js dependencies
-        run: npm i
-
-      - name: Run linters
-        uses: wearerequired/lint-action@v2
-        with:
-          eslint: true
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: Checkout branch
+      uses: actions/checkout@v2
+    - name: Cache node modules
+      id: cache_npm
+      uses: pat-s/always-upload-cache@v2.1.0
+      env:
+        cache-name: node-modules
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-lint-${{ env.cache-name }}-5
+    - name: Install dependencies
+      if: steps.cache_npm.outputs.cache-hit == false
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: |
+        rm package.json
+        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+        npm install eslint @triggi/eslint-config-olisto-nodejs --no-save
+    - name: Create linter config file
+      run: |
+        echo '{"extends":"@triggi/olisto-nodejs"}' > _ci-eslint-config.json
+    - name: Run linter for current
+      run: |
+        # grep to remove the summary line
+        npx eslint -c _ci-eslint-config.json -f compact . | grep -v "^$\|^[0-9]\+ problem\(s\?\)$" > result-current || true
+    - name: Cache linter baseline
+      id: cache_baseline
+      uses: pat-s/always-upload-cache@v2.1.0
+      env:
+        cache-name: lint-results-base
+      with:
+        path: result-base
+        key: ${{ runner.os }}-lint-${{ env.cache-name }}-${{ github.event.pull_request.base.sha }}-1
+    - name: Checkout base (${{ github.base_ref }})
+      if: steps.cache_baseline.outputs.cache-hit == false
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.base_ref }}
+        path: _ci-checkout-base
+    - name: Run linter for baseline
+      if: steps.cache_baseline.outputs.cache-hit == false
+      run: |
+        # sed to strip the additional '/_ci-checkout-base' frmo the path
+        # grep to remove the summary line
+        npx eslint -c _ci-eslint-config.json -f compact _ci-checkout-base | sed -e's/\/_ci-checkout-base//' | grep -v "^$\|^[0-9]\+ problem\(s\?\)$" > result-base || true
+    - name: Find differences and report
+      run: |
+        # Mask the line numbers and see if there is any difference then. If not, differences are caused by changed line numbers.
+        # We mask them with regexes, so we can use them to filter all changed lines later
+        # comm -13 to return the lines found in the 2nd input only. Use sed on both inputs to replace the line number by a regex that matches anything from 'line ' until the next comma.
+        # grep to filter only the lines that start with a single '+' (additions)
+        # sed to remove the '+'s at the start of the lines
+        # grep -v to remove the (possible) line saying n problem(s)
+        # true to make sure to not return non-zero exit code (when diff is empty)
+        SUBST_LINENO='s/: line\([^,]*\)/: line \\([^,]*\\)/'
+        comm -13 <(sed result-base -e "$SUBST_LINENO" | sort) <(sed result-current -e "$SUBST_LINENO" | sort) > result-diff-masked || true
+        # Use the remaining masked lines to filter the matching problems from all current problems - which include the correct line numbers
+        comm -13 <(sort result-base) <(sort result-current) | grep -xf result-diff-masked || true
+        # Return non-zero code if the masked diff yielded any lines
+        [ -z "$(cat result-diff-masked)" ]
