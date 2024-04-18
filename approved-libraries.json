@@ -1,0 +1,6 @@
+{
+    "deep-equal": true,
+    "extend": true,
+    "semver": true,
+    "shortid": true
+}

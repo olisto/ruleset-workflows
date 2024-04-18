@@ -1,0 +1,26 @@
+name: Dependency Check
+
+on: [push, pull_request]
+
+jobs:
+  check-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        path: 'main-repo'
+    - name: Checkout workflow code
+      uses: actions/checkout@v3
+      with:
+        repository: 'olisto/ruleset-workflows'
+        path: 'workflow-repo'
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    - name: Check approved dependencies
+      run: node check-dependencies.js
+    env:
+      MAIN_REPO_PATH: ${{ github.workspace }}/main-repo
+      WORKFLOW_REPO_PATH: ${{ github.workspace }}/workflow-repo
