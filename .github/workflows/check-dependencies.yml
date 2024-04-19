@@ -14,13 +14,14 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: 'olisto/ruleset-workflows'
+        ref: 'feature/ODEV-1970-library-check'
         path: 'workflow-repo'
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '20'
     - name: Check approved dependencies
-      run: node check-dependencies.js
+      run: node workflow-repo/check-dependencies.js
     env:
       MAIN_REPO_PATH: ${{ github.workspace }}/main-repo
       WORKFLOW_REPO_PATH: ${{ github.workspace }}/workflow-repo
