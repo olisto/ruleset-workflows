@@ -16,6 +16,13 @@ jobs:
         repository: 'olisto/ruleset-workflows'
         ref: 'feature/ODEV-1970-library-check'
         path: 'workflow-repo'
+    - name: Checkout private workflow files
+      uses: actions/checkout@v3
+      with:
+        repository: 'olisto/private-workflow-files'
+        ref: 'feat/ODEV-1970-files-for-check-dependencies'
+        path: 'private-workflow-files'
+        token: ${{ secrets.RULESET_WORKFLOW_GITHUB_TOKEN }}
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
@@ -25,3 +32,4 @@ jobs:
     env:
       MAIN_REPO_PATH: ${{ github.workspace }}/main-repo
       WORKFLOW_REPO_PATH: ${{ github.workspace }}/workflow-repo
+      PRIVATE_WORKFLOW_FILE_PATH: ${{ github.workspace }}/private-workflow-files/check-dependencies

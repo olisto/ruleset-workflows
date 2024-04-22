@@ -8,7 +8,7 @@ try {
 	console.error('package.json not found or is not valid JSON');
 	process.exit(1);
 }
-const approvedLibraries = JSON.parse(fs.readFileSync(path.join(process.env.WORKFLOW_REPO_PATH, 'approved-libraries.json')));
+const approvedLibraries = JSON.parse(fs.readFileSync(path.join(process.env.PRIVATE_WORKFLOW_FILE_PATH, 'approved-libraries.json')));
 
 const badLibraries = [];
 for (const [name, version] of Object.entries(packageJson.dependencies || {})) {
