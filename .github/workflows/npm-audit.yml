@@ -15,7 +15,7 @@ jobs:
     - name: Install dependencies
       run: npm install --also=dev
     - name: Run npm audit
-      uses: npm audit --json > results.json
+      run: npm audit --json > results.json
     - name: Check results
       run: |
         vulnerabilities=$(jq -r '.vulnerabilities | to_entries[] | .value[] | "Module: \(.name)\nSeverity: \(.severity)\nTitle: \(.title)\nURL: \(.url)\n"' < audit-report.json)
