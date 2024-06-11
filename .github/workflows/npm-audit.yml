@@ -1,4 +1,4 @@
-name: Dependency Check
+name: Npm Audit
 
 on: [push, pull_request]
 
