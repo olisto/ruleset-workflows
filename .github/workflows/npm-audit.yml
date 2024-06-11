@@ -1,0 +1,32 @@
+name: Dependency Check
+
+on: [push, pull_request]
+
+jobs:
+  npm-audit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    - name: Install dependencies
+      run: npm install --also=dev
+    - name: Run npm audit
+      uses: npm audit --json > results.json
+    - name: Check results
+      run: |
+        vulnerabilities=$(jq -r '.vulnerabilities | to_entries[] | .value[] | "Module: \(.name)\nSeverity: \(.severity)\nTitle: \(.title)\nURL: \(.url)\n"' < audit-report.json)
+        echo "$vulnerabilities"
+
+        n_critical=$(jq '.metadata.vulnerabilities.critical' < audit-report.json)
+        if [ $n_critical -gt 0 ]; then
+          echo "::set-output name=status::bad"
+          echo "Critical vulnerabilities found."
+          exit 1
+        else
+          echo "::set-output name=status::good"
+          echo "No critical vulnerabilities found."
+        fi
