@@ -16,7 +16,7 @@ jobs:
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
-        echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+        npm config set //registry.npmjs.org/:_authToken=${NPM_TOKEN}
         npm install --also=dev
     - name: Audit
       run: npm audit --parseable --audit-level=critical
