@@ -12,11 +12,9 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '20'
+    - name: Remove @triggi/ dependencies
+      run: sed '/"@triggi\/[A-Za-z0-9-]\+" \?:/d' package.json --in-place
     - name: Install dependencies
-      env:
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      run: |
-        npm config set //registry.npmjs.org/:_authToken=${NPM_TOKEN}
-        npm install --also=dev
+      run: npm install --also=dev
     - name: Audit
       run: npm audit --parseable --audit-level=critical
