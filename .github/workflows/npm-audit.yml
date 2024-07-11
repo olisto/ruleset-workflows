@@ -1,0 +1,24 @@
+name: Npm Audit
+
+on: [push, pull_request]
+
+jobs:
+  npm-audit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    - name: Install jq
+      run: sudo apt-get install jq
+    - name: Remove @triggi/ dependencies
+      run: |
+        jq '(.dependencies // {}) |= with_entries(select(.key | test("@triggi/") | not)) |
+            (.devDependencies // {}) |= with_entries(select(.key | test("@triggi/") | not))' package.json > package.json.tmp && mv package.json.tmp package.json
+    - name: Install dependencies
+      run: npm install --also=dev
+    - name: Audit
+      run: npm audit --parseable --audit-level=critical
