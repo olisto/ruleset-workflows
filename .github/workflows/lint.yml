@@ -32,7 +32,7 @@ jobs:
       run: |
         rm package.json
         echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-        npm install eslint @triggi/eslint-config-olisto-nodejs --no-save
+        npm install eslint@^8.39.0 @triggi/eslint-config-olisto-nodejs --no-save
     - name: Create linter config file
       run: |
         echo '{"extends":"@triggi/olisto-nodejs"}' > _ci-eslint-config.json
