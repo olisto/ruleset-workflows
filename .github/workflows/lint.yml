@@ -14,7 +14,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v1
       with:
-        node-version: 10.x
+        node-version: 20.x
     - name: Checkout branch
       uses: actions/checkout@v2
     - name: Cache node modules
@@ -26,13 +26,13 @@ jobs:
         path: node_modules
         key: ${{ runner.os }}-lint-${{ env.cache-name }}-5
     - name: Install dependencies
-      if: steps.cache_npm.outputs.cache-hit == false
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # using ^8 for eslint because of breaking change in way config works in 9
       run: |
         rm package.json
         echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-        npm install eslint @triggi/eslint-config-olisto-nodejs --no-save
+        npm install eslint@^8.39.0 @triggi/eslint-config-olisto-nodejs --no-save
     - name: Create linter config file
       run: |
         echo '{"extends":"@triggi/olisto-nodejs"}' > _ci-eslint-config.json
@@ -57,7 +57,7 @@ jobs:
     - name: Run linter for baseline
       if: steps.cache_baseline.outputs.cache-hit == false
       run: |
-        # sed to strip the additional '/_ci-checkout-base' frmo the path
+        # sed to strip the additional '/_ci-checkout-base' from the path
         # grep to remove the summary line
         npx eslint -c _ci-eslint-config.json -f compact _ci-checkout-base | sed -e's/\/_ci-checkout-base//' | grep -v "^$\|^[0-9]\+ problem\(s\?\)$" > result-base || true
     - name: Find differences and report
