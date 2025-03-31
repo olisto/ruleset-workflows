@@ -42,7 +42,7 @@ jobs:
         npx eslint -c _ci-eslint-config.json -f compact . | grep -v "^$\|^[0-9]\+ problem\(s\?\)$" > result-current || true
     - name: Cache linter baseline
       id: cache_baseline
-      uses: pat-s/always-upload-cache@v2.1.0
+      uses: pat-s/always-upload-cache@v3.0.11
       env:
         cache-name: lint-results-base
       with:
